@@ -1,0 +1,42 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace file
+go.work
+
+# Environment variables
+.env
+server/.env
+client/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+vendor/
+
+# Generated files
+*.pb.go
+*.pb.gw.go
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
