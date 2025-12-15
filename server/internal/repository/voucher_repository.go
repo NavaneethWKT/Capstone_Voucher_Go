@@ -18,7 +18,7 @@ func NewVoucherRepository(db *sql.DB) *VoucherRepository {
 }
 
 // SearchVouchers searches for vouchers with optional filters
-func (r *VoucherRepository) SearchVouchers(category string, minPrice, maxPrice *float64, limit, offset int) ([]*model.Voucher, error) {
+func (r *VoucherRepository) SearchVouchers(category string, minPrice, maxPrice *float64) ([]*model.Voucher, error) {
 	query := `
 		SELECT id, name, description, category, price, quantity, valid_from, valid_to, created_at, updated_at
 		FROM vouchers
@@ -45,8 +45,7 @@ func (r *VoucherRepository) SearchVouchers(category string, minPrice, maxPrice *
 		argPos++
 	}
 
-	query += fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", argPos, argPos+1)
-	args = append(args, limit, offset)
+	query += " ORDER BY created_at DESC"
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {

@@ -6,6 +6,7 @@
 *.dylib
 *.test
 *.out
+*.md
 
 # Go workspace file
 go.work

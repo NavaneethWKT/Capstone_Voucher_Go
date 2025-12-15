@@ -58,17 +58,16 @@ func (r *TransactionRepository) CreateTransaction(tx *sql.Tx, transaction *model
 	return err
 }
 
-// GetTransactionsByUserID retrieves all transactions for a user with optional filters
-func (r *TransactionRepository) GetTransactionsByUserID(userID int, limit, offset int) ([]*model.Transaction, error) {
+// GetTransactionsByUserID retrieves all transactions for a user
+func (r *TransactionRepository) GetTransactionsByUserID(userID int) ([]*model.Transaction, error) {
 	query := `
 		SELECT id, user_id, voucher_id, amount, transaction_type, payment_status, payment_txn_id, created_at, updated_at
 		FROM transactions
 		WHERE user_id = $1
 		ORDER BY created_at DESC
-		LIMIT $2 OFFSET $3
 	`
 
-	rows, err := r.db.Query(query, userID, limit, offset)
+	rows, err := r.db.Query(query, userID)
 	if err != nil {
 		return nil, err
 	}
