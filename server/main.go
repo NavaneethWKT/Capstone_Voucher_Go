@@ -66,6 +66,7 @@ func main() {
 
 	// Step 5: Initialize handlers
 	voucherServiceHandler := handler.NewVoucherServiceHandler(
+		userService,
 		voucherService,
 		paymentService,
 		walletService,

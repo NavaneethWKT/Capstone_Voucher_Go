@@ -1,7 +1,8 @@
 package service
 
 import (
-	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/errors"
+	"fmt"
+
 	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/model"
 	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/repository"
 )
@@ -28,7 +29,7 @@ func (s *TransactionService) ListTransactions(userID int) ([]*model.Transaction,
 
 	transactions, err := s.transactionRepo.GetTransactionsByUserID(userID)
 	if err != nil {
-		return nil, errors.WrapError(err, "failed to get transactions")
+		return nil, fmt.Errorf("failed to get transactions: %w", err)
 	}
 
 	return transactions, nil

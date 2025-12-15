@@ -2,8 +2,9 @@ package service
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 
-	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/errors"
 	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/repository"
 )
 
@@ -21,12 +22,12 @@ func NewWalletService(walletRepo *repository.WalletRepository) *WalletService {
 // GetBalance retrieves the current balance for a user
 func (s *WalletService) GetBalance(userID int) (float64, error) {
 	if userID <= 0 {
-		return 0, errors.ErrInvalidUserID
+		return 0, errors.New("invalid user ID")
 	}
 
 	balance, err := s.walletRepo.GetBalance(userID)
 	if err != nil {
-		return 0, errors.WrapError(err, "failed to get wallet balance")
+		return 0, fmt.Errorf("failed to get wallet balance: %w", err)
 	}
 
 	return balance, nil
@@ -35,20 +36,20 @@ func (s *WalletService) GetBalance(userID int) (float64, error) {
 // ValidateSufficientBalance checks if user has enough balance for a transaction
 func (s *WalletService) ValidateSufficientBalance(userID int, amount float64) error {
 	if userID <= 0 {
-		return errors.ErrInvalidUserID
+		return errors.New("invalid user ID")
 	}
 
 	if amount <= 0 {
-		return errors.ErrInvalidAmount
+		return errors.New("invalid amount")
 	}
 
 	balance, err := s.walletRepo.GetBalance(userID)
 	if err != nil {
-		return errors.WrapError(err, "failed to get wallet balance")
+		return fmt.Errorf("failed to get wallet balance: %w", err)
 	}
 
 	if balance < amount {
-		return errors.ErrInsufficientBalance
+		return errors.New("insufficient wallet balance")
 	}
 
 	return nil
@@ -57,11 +58,11 @@ func (s *WalletService) ValidateSufficientBalance(userID int, amount float64) er
 // DeductBalance deducts amount from user's wallet (used in transactions)
 func (s *WalletService) DeductBalance(tx *sql.Tx, userID int, amount float64) error {
 	if userID <= 0 {
-		return errors.ErrInvalidUserID
+		return errors.New("invalid user ID")
 	}
 
 	if amount <= 0 {
-		return errors.ErrInvalidAmount
+		return errors.New("invalid amount")
 	}
 
 	// Validate balance before deducting
@@ -72,7 +73,7 @@ func (s *WalletService) DeductBalance(tx *sql.Tx, userID int, amount float64) er
 	// Deduct the amount (negative value)
 	err := s.walletRepo.UpdateBalance(tx, userID, -amount)
 	if err != nil {
-		return errors.WrapError(err, "failed to deduct wallet balance")
+		return fmt.Errorf("failed to deduct wallet balance: %w", err)
 	}
 
 	return nil
@@ -81,17 +82,17 @@ func (s *WalletService) DeductBalance(tx *sql.Tx, userID int, amount float64) er
 // AddBalance adds amount to user's wallet (for top-ups, refunds)
 func (s *WalletService) AddBalance(tx *sql.Tx, userID int, amount float64) error {
 	if userID <= 0 {
-		return errors.ErrInvalidUserID
+		return errors.New("invalid user ID")
 	}
 
 	if amount <= 0 {
-		return errors.ErrInvalidAmount
+		return errors.New("invalid amount")
 	}
 
 	// Add the amount (positive value)
 	err := s.walletRepo.UpdateBalance(tx, userID, amount)
 	if err != nil {
-		return errors.WrapError(err, "failed to add wallet balance")
+		return fmt.Errorf("failed to add wallet balance: %w", err)
 	}
 
 	return nil

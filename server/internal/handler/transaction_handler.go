@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
+	"strings"
 
 	"github.com/NavaneethWKT/CapStone_GO_Lang/protoc"
-	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/errors"
 	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -63,13 +63,14 @@ func (h *TransactionHandler) ListTransactions(ctx context.Context, req *protoc.L
 
 // handleError converts application errors to gRPC status errors
 func (h *TransactionHandler) handleError(err error) error {
-	switch err {
-	case errors.ErrUserNotFound:
-		return status.Error(codes.NotFound, err.Error())
-	case errors.ErrInvalidUserID:
-		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.ErrTransactionNotFound:
-		return status.Error(codes.NotFound, err.Error())
+	errMsg := err.Error()
+	switch {
+	case strings.Contains(errMsg, "user not found"):
+		return status.Error(codes.NotFound, errMsg)
+	case strings.Contains(errMsg, "invalid user ID"):
+		return status.Error(codes.InvalidArgument, errMsg)
+	case strings.Contains(errMsg, "transaction not found"):
+		return status.Error(codes.NotFound, errMsg)
 	default:
 		return status.Error(codes.Internal, "internal server error")
 	}

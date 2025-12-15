@@ -1,7 +1,9 @@
 package service
 
 import (
-	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/errors"
+	"errors"
+	"fmt"
+
 	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/model"
 	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/repository"
 )
@@ -20,34 +22,34 @@ func NewUserService(userRepo *repository.UserRepository) *UserService {
 // ValidateUserExists checks if a user exists by ID
 func (s *UserService) ValidateUserExists(userID int) error {
 	if userID <= 0 {
-		return errors.ErrInvalidUserID
+		return errors.New("invalid user ID")
 	}
 
 	user, err := s.userRepo.GetUserByID(userID)
 	if err != nil {
-		return errors.WrapError(err, "failed to get user")
+		return fmt.Errorf("failed to get user: %w", err)
 	}
 
 	if user == nil {
-		return errors.ErrUserNotFound
+		return errors.New("user not found")
 	}
 
 	return nil
 }
 
-// GetUser retrieves a user by ID
-func (s *UserService) GetUser(userID int) (*model.User, error) {
-	if userID <= 0 {
-		return nil, errors.ErrInvalidUserID
+// Login authenticates a user with email and password
+func (s *UserService) Login(email, password string) (*model.User, error) {
+	if email == "" || password == "" {
+		return nil, errors.New("invalid email or password")
 	}
 
-	user, err := s.userRepo.GetUserByID(userID)
+	user, err := s.userRepo.Login(email, password)
 	if err != nil {
-		return nil, errors.WrapError(err, "failed to get user")
+		return nil, fmt.Errorf("failed to login: %w", err)
 	}
 
 	if user == nil {
-		return nil, errors.ErrUserNotFound
+		return nil, errors.New("invalid email or password")
 	}
 
 	return user, nil

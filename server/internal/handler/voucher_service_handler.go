@@ -10,25 +10,33 @@ import (
 // VoucherServiceHandler implements all gRPC service methods
 type VoucherServiceHandler struct {
 	protoc.UnimplementedVoucherServiceServer
-	voucherHandler     *VoucherHandler
-	paymentHandler     *PaymentHandler
-	walletHandler      *WalletHandler
-	transactionHandler *TransactionHandler
+	loginHandler        *LoginHandler
+	voucherHandler      *VoucherHandler
+	paymentHandler      *PaymentHandler
+	walletHandler       *WalletHandler
+	transactionHandler  *TransactionHandler
 }
 
 // NewVoucherServiceHandler creates a new combined handler
 func NewVoucherServiceHandler(
+	userService *service.UserService,
 	voucherService *service.VoucherService,
 	paymentService *service.PaymentService,
 	walletService *service.WalletService,
 	transactionService *service.TransactionService,
 ) *VoucherServiceHandler {
 	return &VoucherServiceHandler{
+		loginHandler:       NewLoginHandler(userService),
 		voucherHandler:     NewVoucherHandler(voucherService),
 		paymentHandler:     NewPaymentHandler(paymentService),
 		walletHandler:      NewWalletHandler(walletService),
 		transactionHandler: NewTransactionHandler(transactionService),
 	}
+}
+
+// Login delegates to LoginHandler
+func (h *VoucherServiceHandler) Login(ctx context.Context, req *protoc.LoginRequest) (*protoc.LoginResponse, error) {
+	return h.loginHandler.Login(ctx, req)
 }
 
 // Search delegates to VoucherHandler

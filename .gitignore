@@ -29,6 +29,7 @@ Thumbs.db
 
 # Dependencies
 vendor/
+scripts/
 
 # Generated files
 *.pb.go

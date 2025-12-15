@@ -2,8 +2,9 @@ package service
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 
-	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/errors"
 	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/model"
 	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/repository"
 )
@@ -67,7 +68,7 @@ func (s *PaymentService) BuyVoucher(userID, voucherID int) (*model.Transaction, 
 	// Step 5: Start database transaction
 	tx, err := s.db.Begin()
 	if err != nil {
-		return nil, errors.WrapError(err, "failed to start transaction")
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 
 	// Defer rollback in case of error
@@ -89,18 +90,18 @@ func (s *PaymentService) BuyVoucher(userID, voucherID int) (*model.Transaction, 
 	}
 
 	if err := s.transactionRepo.CreateTransaction(tx, transaction); err != nil {
-		return nil, errors.WrapError(err, "failed to create transaction record")
+		return nil, fmt.Errorf("failed to create transaction record: %w", err)
 	}
 
 	// Step 8: Update voucher quantity (decrease by 1)
 	if err := s.voucherRepo.UpdateVoucherQuantity(tx, voucherID, -1); err != nil {
-		return nil, errors.WrapError(err, "failed to update voucher quantity")
+		return nil, fmt.Errorf("failed to update voucher quantity: %w", err)
 	}
 
 	// Step 9: Process payment via Mock UPI
 	paymentResult, err := s.mockUPI.ProcessPayment(amount, userID, transaction.ID)
 	if err != nil {
-		return nil, errors.WrapError(err, "failed to process payment")
+		return nil, fmt.Errorf("failed to process payment: %w", err)
 	}
 
 	// Step 10: Update transaction status based on payment result
@@ -108,22 +109,22 @@ func (s *PaymentService) BuyVoucher(userID, voucherID int) (*model.Transaction, 
 	if paymentResult.Success {
 		paymentTxnID = &paymentResult.PaymentTxnID
 		if err := s.transactionRepo.UpdateTransactionStatus(tx, transaction.ID, model.PaymentStatusSuccess, paymentTxnID); err != nil {
-			return nil, errors.WrapError(err, "failed to update transaction status")
+			return nil, fmt.Errorf("failed to update transaction status: %w", err)
 		}
 		transaction.PaymentStatus = model.PaymentStatusSuccess
 		transaction.PaymentTxnID = paymentTxnID
 	} else {
 		// Payment failed - rollback will happen automatically
 		if err := s.transactionRepo.UpdateTransactionStatus(tx, transaction.ID, model.PaymentStatusFailed, nil); err != nil {
-			return nil, errors.WrapError(err, "failed to update transaction status")
+			return nil, fmt.Errorf("failed to update transaction status: %w", err)
 		}
 		transaction.PaymentStatus = model.PaymentStatusFailed
-		return nil, errors.ErrPaymentFailed
+		return nil, errors.New("payment processing failed")
 	}
 
 	// Step 11: Commit transaction (all operations succeeded)
 	if err := tx.Commit(); err != nil {
-		return nil, errors.WrapError(err, "failed to commit transaction")
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return transaction, nil

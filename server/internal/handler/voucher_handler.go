@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/NavaneethWKT/CapStone_GO_Lang/protoc"
-	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/errors"
 	"github.com/NavaneethWKT/CapStone_GO_Lang/server/internal/service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -68,25 +68,26 @@ func (h *VoucherHandler) Search(ctx context.Context, req *protoc.SearchRequest) 
 
 // handleError converts application errors to gRPC status errors
 func (h *VoucherHandler) handleError(err error) error {
-	switch err {
-	case errors.ErrVoucherNotFound:
-		return status.Error(codes.NotFound, err.Error())
-	case errors.ErrVoucherOutOfStock:
-		return status.Error(codes.FailedPrecondition, err.Error())
-	case errors.ErrVoucherExpired:
-		return status.Error(codes.FailedPrecondition, err.Error())
-	case errors.ErrInvalidVoucherID:
-		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.ErrInvalidPrice:
-		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.ErrUserNotFound:
-		return status.Error(codes.NotFound, err.Error())
-	case errors.ErrInvalidUserID:
-		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.ErrInsufficientBalance:
-		return status.Error(codes.FailedPrecondition, err.Error())
-	case errors.ErrPaymentFailed:
-		return status.Error(codes.Internal, err.Error())
+	errMsg := err.Error()
+	switch {
+	case strings.Contains(errMsg, "voucher not found"):
+		return status.Error(codes.NotFound, errMsg)
+	case strings.Contains(errMsg, "voucher out of stock"):
+		return status.Error(codes.FailedPrecondition, errMsg)
+	case strings.Contains(errMsg, "voucher expired"):
+		return status.Error(codes.FailedPrecondition, errMsg)
+	case strings.Contains(errMsg, "invalid voucher ID"):
+		return status.Error(codes.InvalidArgument, errMsg)
+	case strings.Contains(errMsg, "invalid price"):
+		return status.Error(codes.InvalidArgument, errMsg)
+	case strings.Contains(errMsg, "user not found"):
+		return status.Error(codes.NotFound, errMsg)
+	case strings.Contains(errMsg, "invalid user ID"):
+		return status.Error(codes.InvalidArgument, errMsg)
+	case strings.Contains(errMsg, "insufficient wallet balance"):
+		return status.Error(codes.FailedPrecondition, errMsg)
+	case strings.Contains(errMsg, "payment processing failed"):
+		return status.Error(codes.Internal, errMsg)
 	default:
 		return status.Error(codes.Internal, "internal server error")
 	}
