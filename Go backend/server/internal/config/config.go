@@ -38,8 +38,13 @@ func LoadConfig() (*DBConfig, error) {
 
 // GetConnectionString returns PostgreSQL connection string
 func (c *DBConfig) GetConnectionString() string {
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		c.Host, c.Port, c.User, c.Password, c.DBName)
+	// Use URL format for better handling of empty passwords
+	if c.Password == "" {
+		return fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=disable",
+			c.User, c.Host, c.Port, c.DBName)
+	}
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		c.User, c.Password, c.Host, c.Port, c.DBName)
 }
 
 // ConnectDB creates and returns a database connection

@@ -30,6 +30,7 @@ Thumbs.db
 # Dependencies
 vendor/
 scripts/
+node_modules/
 
 # Generated files
 *.pb.go

@@ -28,6 +28,7 @@ func main() {
 	log.Println("Connected to gRPC server")
 
 	// Step 2: Initialize handlers
+	loginHandler := handler.NewLoginHandler(grpcClient)
 	voucherHandler := handler.NewVoucherHandler(grpcClient)
 	paymentHandler := handler.NewPaymentHandler(grpcClient)
 	walletHandler := handler.NewWalletHandler(grpcClient)
@@ -36,6 +37,21 @@ func main() {
 
 	// Step 3: Setup Gin router
 	router := gin.Default()
+
+	// Enable CORS
+	router.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	})
 
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
@@ -48,6 +64,12 @@ func main() {
 	// API routes
 	api := router.Group("/api/v1")
 	{
+		// Auth routes
+		auth := api.Group("/auth")
+		{
+			auth.POST("/login", loginHandler.Login)
+		}
+
 		// Voucher routes
 		vouchers := api.Group("/vouchers")
 		{
